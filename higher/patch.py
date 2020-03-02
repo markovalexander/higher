@@ -196,6 +196,15 @@ def _make_functional(
             )
             self._modules: _typing.Dict[str, _MonkeyPatchBase] = _OrderedDict()
 
+        def parameters(self):
+            len_op = sum([1 for _ in self._original_params])
+            if len_op > 0:
+                return self._original_params
+            else:
+                gen = (p[1] for p in self.named_parameters())
+                return gen
+
+
         def __setattr__(self, name, value):
             def remove_from(*dicts):
                 for d in dicts:
@@ -281,7 +290,7 @@ def _make_functional(
             self._param_names,
             params_box[0][params_offset:params_offset + num_params]
         ):
-            setattr(self, name, param)
+            setattr(self, name, param.to(args[0].device))
 
         # This snippet deals with torch.nn.{RNN,GRU,LSTM}
         if hasattr(self, "_flat_weights_names"):
